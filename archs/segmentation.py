@@ -177,8 +177,7 @@ class CNN(nn.Module):
         return self.output(x)
 
 # Models are constructed one at a time in the RUN section.
-# This is important for the Full-Gradient model because its spline
-# computation can require substantially more memory.
+# This is important for the Full-Gradient model because its spline computation can require substantially more memory.
 def build_models(widths, 
                  in_channels, 
                  out_channels, 

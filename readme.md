@@ -16,11 +16,11 @@ experiment scripts that only wire the pieces together.
 
 ```
 .
-├── archs/                # Markdown descriptions of each architecture
+├── archs/                # Descriptions of each architecture
 │
 ├── common/               # Shared building blocks
 │
-├── configs/              # Plain-data configuration files
+├── configs/              # Configuration files
 │
 ├── data/                 # Datasets
 │
@@ -40,8 +40,6 @@ experiment scripts that only wire the pieces together.
 - PyTorch (with CUDA if available)
 - torchvision
 - scikit-learn
-- numpy
-- Pillow
 
 ---
 

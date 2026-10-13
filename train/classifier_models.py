@@ -19,7 +19,8 @@ sys.stdout = Logger(f"cls_{TIME}.log")
 # ============================================================
 # DATASET
 # ============================================================
-
+# Reference values for normalization
+# https://www.ricardodecal.com/guides/use-these-normalization-values-for-torchvision-datasets/
 transform = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize(
