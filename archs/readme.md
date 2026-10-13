@@ -1,6 +1,3 @@
-# `models/README.md`
-
-````markdown
 # Models
 
 This folder contains all model definitions used in the experiments.
@@ -51,4 +48,3 @@ All four are U-Net-shaped: encoder → bottleneck → decoder → 1×1 output.
 - **`build_models(...)`** — returns the four models above as
   `(name, model)` pairs. Models are constructed lazily (one at a time)
   because the Full-Gradient variant needs much more memory.
-````

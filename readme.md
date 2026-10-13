@@ -51,8 +51,7 @@ All datasets live under `./data/`:
 
 - `data/cifar100/` — CIFAR-100. Downloaded automatically by
   `torchvision.datasets.CIFAR100` on first run.
-- `data/Dataset_BUSI_with_GT/` — BUSI. Must be downloaded manually and
-  extracted into `./data/Dataset_BUSI_with_GT/`. Expected subfolders:
+- `data/Dataset_BUSI_with_GT/` — BUSI. Must be downloaded manually and extracted into `./data/Dataset_BUSI_with_GT/`. Expected subfolders:
   `benign/`, `malignant/`, `normal/`.
 - California Housing is fetched from `scikit-learn` directly, no local copy.
 
