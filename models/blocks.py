@@ -12,7 +12,7 @@ class KANBlock(nn.Module):
         self,
         widths,
         grid_size = 5,
-        splie_order = 3
+        spline_order = 3
     ):
         super().__init__()
 
@@ -25,7 +25,7 @@ class KANBlock(nn.Module):
                     widths[i],
                     widths[i + 1],
                     grid_size=grid_size,
-                    spline_order=splie_order
+                    spline_order=spline_order
                 )
             )
 
@@ -105,7 +105,9 @@ class SaKANPixelBlock(nn.Module):
 
 class KANELEPixelBlock(SaKANPixelBlock):
     """
-    KAPixelLayer built from KANELEKALayer (same data flow).
+    SaKANPixelBlock built from KANELEKALayer (same data flow). The SiLU
+    between two KA layers is folded into the tables of the second layer
+    (pre_silu=True).
 
     [B,C,H,W] -> [B,H,W,C] -> KA -> [B,C_out,H,W]
     """
@@ -134,7 +136,6 @@ class KANELEPixelBlock(SaKANPixelBlock):
                     in_range=qrange,
                     out_range=qrange,
                     table_frac_bits=table_frac_bits,
-                    # SiLU between two KA layers, as in KAPixelLayer.
                     pre_silu=(i > 0)
                 )
             )

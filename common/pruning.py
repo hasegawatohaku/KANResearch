@@ -25,8 +25,8 @@ def prune_connections(layer, scores, target_sparsity):
     Prune the lowest-scored active connections of one layer until
     ceil(total * (1 - target_sparsity)) connections remain active.
 
-    As in kanele_regression.py, the last active connection of an output
-    is never removed, and a pruned connection is never restored.
+    The last active connection of an output is never removed, and a
+    pruned connection is never restored.
     """
 
     if target_sparsity <= 0:
@@ -125,12 +125,15 @@ def make_kanele_epoch_end(
     train_dataset,
     target_sparsity,
     pruning_start_epoch,
-    epochs
+    epochs,
+    batch_size
 ):
     """
-    Pruning schedule of kanele_regression.py as an epoch-end hook:
-    from KANELE_PRUNING_START_EPOCH the sparsity grows linearly and
-    reaches KANELE_TARGET_SPARSITY at the last epoch.
+    Return an epoch-end hook that prunes the KANELÉ model.
+
+    From `pruning_start_epoch`, the target sparsity grows linearly and
+    reaches `target_sparsity` at epoch `epochs`. Connections are scored on
+    the first `calibration` images of `train_dataset`.
     """
 
     # Fixed calibration images, loaded once. A tensor is used instead of a
@@ -149,7 +152,7 @@ def make_kanele_epoch_end(
         )
         sparsity = target_sparsity * min(progress, 1.0)
 
-        removed = update_kanele_pruning(model, calibration_images, sparsity)
+        removed = update_kanele_pruning(model, calibration_images, sparsity, batch_size)
         active, total = count_kanele_connections(model)
 
         if epoch == 1 or epoch % 2 == 0:

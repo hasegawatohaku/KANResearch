@@ -81,7 +81,7 @@ class ALLUKAN_FULL_GRAD(nn.Module):
             pools,
             grid_size=grid_size,
             spline_order=spline_order,
-            grad_free=True
+            grad_free=False
         )
 
         self.bottleneck = SaKANPixelBlock(
@@ -96,7 +96,7 @@ class ALLUKAN_FULL_GRAD(nn.Module):
             pools,
             grid_size=grid_size,
             spline_order=spline_order,
-            grad_free=True
+            grad_free=False
         )
 
         self.output = SaKANConv2dLayer(
@@ -117,10 +117,10 @@ class ALLUKAN_FULL_GRAD(nn.Module):
 
 class ALLUKAN_CNN_CONV(nn.Module):
     """
-    Modified ALL U-KAN + GFS.
-
-    Convolutional parts are replaced with ordinary CNN convolutions,
-    while the bottleneck remains a Grad-Free KA block.
+    Modified ALL U-KAN + GFS: the KAonv layers are replaced with ordinary
+    CNN convolutions, while the bottleneck remains a Grad-Free KA block.
+    With ka_widths = [] the bottleneck is empty and the model has the
+    same architecture as CNN.
     """
 
     def __init__(self,
@@ -162,9 +162,10 @@ class ALLUKAN_KANELE(nn.Module):
     ALL U-KAN + GFS with KANELÉ quantization-aware training,
     connection pruning and integer LUT inference.
 
-    Architecture, parameterization and initialization are identical to
-    ALLUKAN_GFS. Every KA / KAonv layer quantizes its inputs, computes
-    its output with integer tables and quantizes the sum.
+    Architecture, parameter layout and initialization scheme are identical
+    to ALLUKAN_GFS; built from the same random state, both models receive
+    the same initial weights. Every KA / KAonv layer quantizes its inputs,
+    computes its output with integer tables and quantizes the sum.
     """
 
     def __init__(self,
@@ -276,20 +277,20 @@ def build_models(widths,
                                                 pools, 
                                                 grid_size, 
                                                 spline_order), False),
-        # ("ALL U-KAN + FULL GRAD", lambda: ALLUKAN_FULL_GRAD(widths,
-        #                                                     in_channels, 
-        #                                                     out_channels, 
-        #                                                     encoder_channels, 
-        #                                                     pools, 
-        #                                                     grid_size, 
-        #                                                     spline_order), False),
-        # ("ALL U-KAN + CNN CONV", lambda: ALLUKAN_CNN_CONV(widths,
-        #                                                   in_channels, 
-        #                                                   out_channels, 
-        #                                                   encoder_channels, 
-        #                                                   pools, 
-        #                                                   grid_size, 
-        #                                                   spline_order), False),
+        ("ALL U-KAN + FULL GRAD", lambda: ALLUKAN_FULL_GRAD(widths,
+                                                            in_channels, 
+                                                            out_channels, 
+                                                            encoder_channels, 
+                                                            pools, 
+                                                            grid_size, 
+                                                            spline_order), False),
+        ("ALL U-KAN + CNN CONV", lambda: ALLUKAN_CNN_CONV(widths,
+                                                          in_channels, 
+                                                          out_channels, 
+                                                          encoder_channels, 
+                                                          pools, 
+                                                          grid_size, 
+                                                          spline_order), False),
         ("ALL U-KAN + KANELE (QAT)", lambda: ALLUKAN_KANELE(widths,
                                                             in_channels,
                                                             out_channels,

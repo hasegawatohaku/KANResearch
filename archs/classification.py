@@ -3,6 +3,8 @@ import torch.nn as nn
 from models.classifiers import KAClassifier, CNNClassifier
 from models.extractors import KAConvFeatureExtractor, CNNFeatureExtractor 
 
+from common.utils import set_seed
+
 class ALLUKAN_GFS(nn.Module):
     """ALL U-KAN: KAonv + KA blocks + Grad-Free Spline"""
 
@@ -79,9 +81,8 @@ class ALLUKAN_FULL_GRAD(nn.Module):
 
 class ALLUKAN_CNN_CONV(nn.Module):
     """
-    Hybrid model: CNN convolutional layers + KA blocks in the classifier.
-
-    The KA classifier remains
+    Hybrid model: ordinary CNN feature extractor (Conv2d + SiLU) and a
+    KA classifier head with Grad-Free Spline.
     """
 
     def __init__(self, 
@@ -137,7 +138,8 @@ class CNN(nn.Module):
         return self.classifier(x)
     
 # Builds the four classification models for the KAonv vs CNN comparison.
-def build_models(in_channels, 
+def build_models(seed,
+                 in_channels, 
                  model, 
                  grid_size, 
                  spline_order, 
@@ -195,6 +197,7 @@ def build_models(in_channels,
     models = []
 
     for name, builder in model_specs:
+        set_seed(seed)
         models.append(
             (
                 name,

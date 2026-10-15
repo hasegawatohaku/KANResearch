@@ -5,7 +5,7 @@ from models.blocks import SaKANBlock
 
 class KAClassifier(nn.Module):
     """
-    Flattens the feature map and passes it through a KABlock classifier head.
+    Flattens the feature map and passes it through a SaKANBlock classifier head.
     """
     def __init__(self, 
                  channels, 

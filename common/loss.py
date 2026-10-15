@@ -8,12 +8,9 @@ import torch.nn as nn
 # BCE provides a stable per-pixel gradient; Dice focuses on the foreground region and helps with class imbalance.
 class BCEDiceLoss(nn.Module):
     """
-    Loss used by ALL U-KAN:
+    BCE + soft Dice loss as in the U-KAN code, on which ALL U-KAN builds:
 
-        BCE + Dice loss
-
-    The paper states that the segmentation experiments combine
-    Binary Cross-Entropy and Dice loss.
+        loss = 0.5 * BCE + (1 - mean Dice over the images of the batch)
     """
 
     def __init__(self):
@@ -33,4 +30,4 @@ class BCEDiceLoss(nn.Module):
 
         dice_loss = 1.0 - dice.mean()
 
-        return bce + dice_loss
+        return 0.5 * bce + dice_loss

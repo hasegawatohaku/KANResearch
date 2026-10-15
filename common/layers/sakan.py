@@ -6,14 +6,17 @@ from common.bspaline import make_knots, bspline_basis
 
 class SaKANLayer(nn.Module):
     """
-    The ALL U-KAN paper [4] defines a KA layer using a shared
-    one-dimensional spline function plus a SiLU linear residual.
+    KA layer based on the Shared-activation KAN (SaKAN) of ALL U-KAN [4]:
+    one spline per output, shared by all inputs, plus a SiLU linear residual.
 
-    
-    y_o = (1/N)sum_i(sum_k(v[o,k] * B_k(x_i))) + sum_i(u[o,i] * SiLU(x_i))
+        y_o = (1/N) sum_i sum_k v[o,k] * B_k(x_i) + sum_i u[o,i] * SiLU(x_i)
 
-    With grad_free=True, the spline basis is detached from the
-    autograd graph. The spline coefficients 'v' remain trainable
+    Deviation from [4]: Eq. 7 sums the spline term over the N inputs; here
+    it is averaged (factor 1/N). Without this scaling, models with KAonv
+    layers train very slowly.
+
+    With grad_free=True, the spline basis is detached from the autograd
+    graph (Grad-Free Spline); the spline coefficients v remain trainable.
     """
 
     def __init__(
@@ -91,10 +94,12 @@ class SaKANLayer(nn.Module):
 
 class SaKANConv2dLayer(nn.Module):
     """
-    Simplified KAonv-style convolution from the original code [2-3].
+    KAonv layer of ALL U-KAN [4] (convolution through a KA layer, cf. [2-3]).
 
-    The local convolution window is unfolded into patches. A shared
-    B-spline branch and a SiLU residual branch produce each output channel.
+    Every local window is unfolded into a patch of P = C * k * k values,
+    and the patch is passed through a SaKAN layer: the spline term is
+    averaged over the P patch elements (as in SaKANLayer), and the SiLU
+    residual has one weight per patch element and output channel.
     """
 
     def __init__(

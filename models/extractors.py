@@ -6,9 +6,11 @@ from common.layers.kanele import KANELEConv2dLayer
 
 class KAConvFeatureExtractor(nn.Module):
     """
-    Feature extractor built from SaKANConv2dLayer blocks.
-    Max pooling is inserted after the block indices listed in `pools`.
-    Returns a single feature map.
+    Feature extractor built from 3x3 SaKANConv2dLayer blocks.
+    Max pooling is applied after the blocks whose indices are in `pools`.
+
+    Returns (x, skips): the final feature map and the outputs of all
+    blocks before pooling (skip connections for a U-Net decoder).
     """
     def __init__(self, in_channels, channels, pools, grid_size, spline_order, grad_free=True):
         super().__init__()
@@ -77,9 +79,11 @@ class CNNFeatureExtractor(KAConvFeatureExtractor):
 
 class KANELEConvFeatureExtractor(KAConvFeatureExtractor):
     """
-    
+    KAConvFeatureExtractor built from KANELEConv2dLayer blocks (quantized,
+    prunable, integer tables). The first block quantizes the input image
+    with `input_range`; all other blocks use `qrange`.
 
-    forward() function inherits from the KAConvFeatureExtractor.
+    forward() is inherited from KAConvFeatureExtractor.
     """
 
     def __init__(

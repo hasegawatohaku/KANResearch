@@ -19,7 +19,7 @@ class KANELEEdgeLayer(nn.Module):
     at the K input levels and is a constant buffer.
 
     pre_silu=True applies SiLU to the layer input before quantization
-    (the SiLU that KAPixelLayer places between two KA layers). It is
+    (the SiLU that SaKANPixelBlock places between two KA layers). It is
     folded into the table, because the input is the quantized output
     of the previous layer (same quantization range).
     """
@@ -242,7 +242,7 @@ class KANELEEdgeLayer(nn.Module):
         """
         RMS contribution of every connection (o, p) on the calibration data.
 
-        Contribution (as in kanele_regression.py):
+        Contribution of one connection:
 
             c[n,o,p] = m[o,p] * ( spline_o(x[n,p]) / P + u[o,p] * SiLU(x[n,p]) )
 
@@ -274,8 +274,8 @@ class KANELEKALayer(KANELEEdgeLayer):
 
 class KANELEConv2dLayer(KANELEEdgeLayer):
     """
-    KAonv layer (SaKANConv2d + Grad-Free Spline) with QAT, a connection
-    mask [O, P] over the patch elements and integer tables.
+    KAonv layer (SaKANConv2dLayer + Grad-Free Spline) with QAT, a
+    connection mask [O, P] over the patch elements and integer tables.
     """
 
     def __init__(

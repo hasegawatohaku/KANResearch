@@ -131,7 +131,7 @@ class LUTKALayer(LUTEdgeLayer):
         return self.lookup(x)
 
 class LUTKAConv2dLayer(LUTEdgeLayer):
-    """LUT version of KANELEConv2d: unfold -> table lookups -> integer sum."""
+    """LUT version of KANELEConv2dLayer: unfold -> table lookups -> integer sum."""
 
     def __init__(self, layer, chunk_elements):
         super().__init__(layer, chunk_elements)

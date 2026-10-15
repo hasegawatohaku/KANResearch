@@ -43,7 +43,6 @@ from common.pruning import count_kanele_connections, make_kanele_epoch_end
 from archs.segmentation import build_models
 
 sys.stdout = Logger(f"seg_{TIME}.log")
-set_seed(SEED)
 
 # ============================================================
 # DATASET
@@ -131,7 +130,7 @@ def calculate_metrics(logits, target):
 # ============================================================
 # Full training loop for segmentation. After each logged epoch it calls
 # evaluate_model and prints validation loss, IoU and F1.
-def train_model(model):
+def train_model(model, epoch_end):
     model = model.to(DEVICE)
 
     optimizer = torch.optim.Adam(
@@ -171,6 +170,9 @@ def train_model(model):
             total_samples += len(xb)
 
         train_loss = total_loss / total_samples
+
+        if epoch_end is not None:
+            epoch_end(epoch)
 
         if epoch == 1 or epoch % 2 == 0:
             val_loss, val_iou, val_f1 = evaluate_model(
@@ -291,7 +293,7 @@ def run_kanele_lut_inference(model, params, chunk_elements):
     criterion = BCEDiceLoss()
 
     start = time.time()
-    lut_model = build_kanele_lut_model(model, KANELE_CHUNK_ELEMENTS)
+    lut_model = build_kanele_lut_model(model, chunk_elements)
     build_time = time.time() - start
 
     if DEVICE == "cuda":
@@ -392,6 +394,8 @@ model_specs = build_models(
 results = []
 
 for name, builder, is_kanele in model_specs:
+    set_seed(SEED)
+    
     # Construct only the current model to keep memory usage low.
     model = builder()
 
@@ -410,10 +414,11 @@ for name, builder, is_kanele in model_specs:
                                     train_dataset, 
                                     KANELE_TARGET_SPARSITY, 
                                     KANELE_PRUNING_START_EPOCH, 
-                                    EPOCHS) if is_kanele else None
+                                    EPOCHS,
+                                    BATCH_SIZE) if is_kanele else None
 
 
-    val_loss, val_iou, val_f1, elapsed = train_model(model)
+    val_loss, val_iou, val_f1, elapsed = train_model(model, epoch_end)
 
     print()
     print("Results:")

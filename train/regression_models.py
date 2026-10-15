@@ -18,7 +18,6 @@ from common.utils import Logger, count_parameters, set_seed
 from archs.regression import build_models
 
 sys.stdout = Logger(f"reg_{TIME}.log")
-set_seed(SEED)
 
 # ============================================================
 # DATASET
@@ -180,6 +179,7 @@ def train_model(model):
 
 print()
 print("Device:", DEVICE)
+print ("Epochs:", EPOCHS)
 print("Model size:", MODEL_SIZE)
 print("Architecture:", WIDTHS)
 print("Number of layers:", len(WIDTHS) - 1)
@@ -187,12 +187,13 @@ print("Grid size:", GRID_SIZE)
 print("Spline order:", SPLINE_ORDER)
 print("N_spline:", GRID_SIZE + SPLINE_ORDER)
 
-models = build_models(WIDTHS, GRID_SIZE, SPLINE_ORDER)
+models = build_models(SEED, WIDTHS, GRID_SIZE, SPLINE_ORDER)
 
 results = []
 
 for name, model in models:
-
+    set_seed(SEED)
+    
     print()
     print("=" * 60)
     print(name)

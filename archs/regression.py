@@ -2,6 +2,8 @@ import torch.nn as nn
 
 from models.blocks import SaKANBlock, KANBlock
 
+from common.utils import set_seed
+
 class MLP(nn.Module):
     """
     Standard MLP baseline with SiLU activations.
@@ -33,7 +35,7 @@ class MLP(nn.Module):
             x = layer(x)
         return x
 # Builds all regression models for the comparison.
-def build_models(widths, grid_size, spline_order):
+def build_models(seed, widths, grid_size, spline_order):
 
     model_specs = [
         (
@@ -76,6 +78,7 @@ def build_models(widths, grid_size, spline_order):
     models = []
 
     for name, builder in model_specs:
+        set_seed(seed)
         models.append(
             (
                 name,

@@ -5,7 +5,10 @@ against classical **MLPs** and **CNNs** across three tasks:
 
 1. Tabular regression (California Housing) — KAN vs MLP.
 2. Image classification (CIFAR-100) — KAonv vs CNN.
-3. Binary segmentation (BUSI) — KAonv vs CNN in a U-Net-style setup.
+3. Binary segmentation (BUSI) — KAonv vs CNN in a U-Net-style setup,
+   including a hardware-oriented **KANELÉ** variant [6, 7]:
+   quantization-aware training, connection pruning and inference through
+   integer lookup tables (LUTs).
 
 The repository is organised as a set of importable packages plus thin
 experiment scripts that only wire the pieces together.
@@ -16,21 +19,23 @@ experiment scripts that only wire the pieces together.
 
 ```
 .
-├── archs/                # Descriptions of each architecture
+├── archs/                # Model architectures and build_models() of each task
 │
-├── common/               # Shared building blocks
-│     └──layers/ 
+├── common/               # Shared code: B-spline basis, initialization, loss,
+│   │                     # dataset, quantization, pruning, logging
+│   └── layers/           # Layers: original KAN, SaKAN (KA / KAonv), KANELÉ
 │
-├── configs/              # Configuration files             
+├── configs/              # Configuration files (constants only)
 │
-├── data/                 # Datasets
+├── data/                 # Datasets (not tracked by git)
 │
-├── models/               # Model definitions
+├── models/               # Building blocks: KA blocks, feature extractors,
+│                         # decoders, classifier heads
 │
-├── res/                  # Log files produced by experiments
+├── res/                  # Log files produced by experiments (not tracked by git)
 │
-└── train/                # Training and evaluation loops
-
+└── train/                # Experiment scripts: training and evaluation loops
+    └── testlut/          # Integer LUT inference and LUT export
 ```
 
 ---
@@ -41,6 +46,7 @@ experiment scripts that only wire the pieces together.
 - PyTorch (with CUDA if available)
 - torchvision
 - scikit-learn
+- NumPy, Pillow
 
 ---
 
@@ -50,8 +56,10 @@ All datasets live under `./data/`:
 
 - `data/cifar100/` — CIFAR-100. Downloaded automatically by
   `torchvision.datasets.CIFAR100` on first run.
-- `data/Dataset_BUSI_with_GT/` — BUSI. Must be downloaded manually and extracted into `./data/Dataset_BUSI_with_GT/`. Expected subfolders:
-  `benign/`, `malignant/`, `normal/`.
+- `data/Dataset_BUSI_with_GT/` — BUSI. Must be downloaded manually and
+  extracted into `./data/Dataset_BUSI_with_GT/`. Expected subfolders:
+  `benign/`, `malignant/`, `normal/`. Only `benign` and `malignant`
+  images are used (647 image–mask pairs); `normal` images have no lesion.
 - California Housing is fetched from `scikit-learn` directly, no local copy.
 
 ---
@@ -61,9 +69,9 @@ All datasets live under `./data/`:
 Every experiment redirects `stdout` into a timestamped `.log` file inside
 `./res/`. The same content is still printed to the terminal.
 
-The segmentation experiment additionally saves the integer lookup tables
-of the KANELÉ model to `kanele_segmentation_lut <TIME>.json` in the
-working directory (enabled by `KANELE_EXPORT_LUT`).
+With `KANELE_EXPORT_LUT = True`, the segmentation experiment additionally
+saves the integer lookup tables of the KANELÉ model to
+`kanele_segmentation_lut <TIME>.json` in the working directory.
 
 ---
 
@@ -77,9 +85,9 @@ python -m train.classifier_models
 python -m train.segmentation_models
 ```
 
-For VS Code debugging, use `"module": "experiments.<name>"` in
-`launch.json` with `"cwd": "${workspaceFolder}"`. See the individual
-config files for the full list of tunable parameters.
+For VS Code debugging, use `"module": "train.<name>"` in `launch.json`
+with `"cwd": "${workspaceFolder}"`. See the individual config files for
+the full list of tunable parameters.
 
 ---
 
@@ -93,18 +101,34 @@ config files for the full list of tunable parameters.
 
 ---
 
-## Notes
+## Implementation notes
 
-- All randomness is seeded through `common.utils.set_seed`.
-- Model construction in each experiment resets the seed so that every
-  model starts from the same initialization distribution.
-- The Grad-Free Spline variant detaches the B-spline basis from autograd;
+- **SaKAN averages the spline term.** The KA and KAonv layers follow the
+  Shared-activation KAN (SaKAN) of ALL U-KAN [4]: one spline per output,
+  shared by all inputs, plus a SiLU linear residual. Unlike Eq. 7 of [4],
+  which sums the spline term over the inputs, this implementation
+  averages it over the inputs (factor `1/N`). The scaling is deliberate:
+  without it, models with KAonv layers train very slowly.
+- **Grad-Free Spline (GFS)** detaches the B-spline basis from autograd;
   only the spline coefficients `v` remain trainable in the spline branch.
+- **Simplified ALL U-KAN.** The "ALL U-KAN" models are deliberately
+  reduced to plain KA / KAonv layers (no BatchNorm, ReLU, LayerNorm or
+  tokenized KA blocks), so that the layers themselves are compared.
+- **Original KAN** uses one spline per input–output edge on a fixed grid
+  (no grid update).
+- **Spline domain.** All spline layers use a fixed uniform grid on
+  [−3, 3], extended by `SPLINE_ORDER` intervals on each side. Outside the
+  extended range (±6.6 for `GRID_SIZE = 5`, `SPLINE_ORDER = 3`) the spline
+  term is zero and only the SiLU residual acts.
+- **Random seed.** Each experiment script calls `common.utils.set_seed(SEED)`
+  once at the start. The models are then built and trained one after
+  another, so each model takes its initial weights and its batch order
+  from a different part of the random stream.
 
 ---
 
-## References 
-1. Liu Z., Wang Y., Vaidya S., Ruehle F., Halverson J., Soljačić M., Hou T. Y., & Tegmark, M. (2024).  
+## References
+1. Liu Z., Wang Y., Vaidya S., Ruehle F., Halverson J., Soljačić M., Hou T. Y., & Tegmark M. (2024).  
    *KAN: Kolmogorov–Arnold Networks.*  
    arXiv preprint arXiv:2404.19756.  
    https://arxiv.org/abs/2404.19756
@@ -128,9 +152,9 @@ config files for the full list of tunable parameters.
    arXiv preprint arXiv:1511.08458.  
    https://arxiv.org/pdf/1511.08458
 
-6. Hoang D., Gupta A., Harris P. (2026).
-   *KANELÉ: Kolmogorov–Arnold Networks for Efficient LUT-based Evaluation*
-   arXiv preprint arxiv:2512.12850.
+6. Hoang D., Gupta A., & Harris P. (2026).  
+   *KANELÉ: Kolmogorov–Arnold Networks for Efficient LUT-based Evaluation.*  
+   arXiv preprint arXiv:2512.12850.  
    https://arxiv.org/html/2512.12850
 
 7. Hoang D., Gupta A.  

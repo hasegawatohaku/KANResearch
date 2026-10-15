@@ -7,7 +7,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
-from configs.cfgany import DEVICE, TIME
+from configs.cfgany import DEVICE, TIME, SEED
 from configs.cfgclassification import EPOCHS, LR, MODEL_SIZE, BATCH_SIZE, IN_CHANNELS, IMAGE_SIZE, NUM_CLASSES, MODEL_CFG, GRID_SIZE, SPLINE_ORDER
 
 from common.utils import Logger, count_parameters
@@ -176,6 +176,7 @@ print("Spline order:", SPLINE_ORDER)
 print("N_spline:", GRID_SIZE + SPLINE_ORDER)
 
 models = build_models(
+    SEED,
     IN_CHANNELS,
     MODEL_CFG,
     GRID_SIZE,
