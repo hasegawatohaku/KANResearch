@@ -120,10 +120,11 @@ the full list of tunable parameters.
   [−3, 3], extended by `SPLINE_ORDER` intervals on each side. Outside the
   extended range (±6.6 for `GRID_SIZE = 5`, `SPLINE_ORDER = 3`) the spline
   term is zero and only the SiLU residual acts.
-- **Random seed.** Each experiment script calls `common.utils.set_seed(SEED)`
-  once at the start. The models are then built and trained one after
-  another, so each model takes its initial weights and its batch order
-  from a different part of the random stream.
+- **Random seed.** Each experiment resets the seed with
+  `common.utils.set_seed(SEED)` before building every model, so all
+  models start from the same random state. Models with the same parameter
+  layout (ALL U-KAN + GFS, + FULL GRAD and + KANELE) receive identical
+  initial weights.
 
 ---
 

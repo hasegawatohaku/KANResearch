@@ -12,8 +12,9 @@ corresponds to one task. Building blocks live in `models/`, layers in
 - **`MLP`** — plain feed-forward baseline.
   `Linear + SiLU` stack, last layer linear.
 
-- **`build_models(widths, grid_size, spline_order)`** — constructs the
-  four models at once and returns them as `(name, model)` pairs:
+- **`build_models(seed, widths, grid_size, spline_order)`** — resets the
+  seed before building each model, constructs the four models and returns
+  them as `(name, model)` pairs:
   - `SAKAN + GRAD-FREE` → `SaKANBlock(..., grad_free=True)`
   - `SAKAN + FULL GRADIENT` → `SaKANBlock(..., grad_free=False)`
   - `ORIGINAL KAN` → `KANBlock(...)`: one spline per input–output edge;
@@ -38,10 +39,10 @@ map of the extractor is flattened; the head has
 - **`CNN`** — pure CNN baseline: CNN extractor + CNN classifier
   (`Linear + SiLU`).
 
-- **`build_models(in_channels, model, grid_size, spline_order, image_size)`**
+- **`build_models(seed, in_channels, model, grid_size, spline_order, image_size)`**
   — reads the config dict `model` (`channels`, `ka_widths`, `pools`, `fc`),
-  constructs the four models at once and returns them as
-  `(name, model)` pairs.
+  resets the seed before building each model, constructs the four models
+  and returns them as `(name, model)` pairs.
 
 ---
 
