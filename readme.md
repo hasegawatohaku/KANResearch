@@ -19,8 +19,9 @@ experiment scripts that only wire the pieces together.
 ├── archs/                # Descriptions of each architecture
 │
 ├── common/               # Shared building blocks
+│     └──layers/ 
 │
-├── configs/              # Configuration files
+├── configs/              # Configuration files             
 │
 ├── data/                 # Datasets
 │
@@ -55,10 +56,14 @@ All datasets live under `./data/`:
 
 ---
 
-## Logs
+## Results
 
 Every experiment redirects `stdout` into a timestamped `.log` file inside
 `./res/`. The same content is still printed to the terminal.
+
+The segmentation experiment additionally saves the integer lookup tables
+of the KANELÉ model to `kanele_segmentation_lut <TIME>.json` in the
+working directory (enabled by `KANELE_EXPORT_LUT`).
 
 ---
 
@@ -84,7 +89,7 @@ config files for the full list of tunable parameters.
 |---|---|---|---|
 | `regression_models` | SaKAN (GFS / full grad), Original KAN, MLP | Regression | MSE, RMSE, Adj R² |
 | `classifier_models` | ALL U-KAN (GFS / full grad / CNN-conv), CNN | Classification | Accuracy |
-| `segmentation_models` | ALL U-KAN (GFS / full grad / CNN-conv), CNN | Segmentation | IoU, F1 |
+| `segmentation_models` | ALL U-KAN (GFS / full grad / CNN-conv / KANELÉ: QAT and LUT), CNN | Segmentation | IoU, F1 |
 
 ---
 
@@ -99,26 +104,35 @@ config files for the full list of tunable parameters.
 ---
 
 ## References 
-1. Liu, Z., Wang, Y., Vaidya, S., Ruehle, F., Halverson, J., Soljačić, M., Hou, T. Y., & Tegmark, M. (2024).  
+1. Liu Z., Wang Y., Vaidya S., Ruehle F., Halverson J., Soljačić M., Hou T. Y., & Tegmark, M. (2024).  
    *KAN: Kolmogorov–Arnold Networks.*  
    arXiv preprint arXiv:2404.19756.  
    https://arxiv.org/abs/2404.19756
 
-2. Bodner, A. D., Tepsich, A. S., Spolski, J. N., & Pourteau, S. (2024).  
+2. Bodner A. D., Tepsich A. S., Spolski J. N., & Pourteau S. (2024).  
    *Convolutional Kolmogorov–Arnold Networks.*  
    arXiv preprint arXiv:2406.13155.  
    https://arxiv.org/abs/2406.13155
 
-3. Tepsich, A., et al. (2024).  
+3. Tepsich A., et al.  
    *Convolutional-KANs* [GitHub repository].  
    https://github.com/AntonioTepsich/Convolutional-KANs
 
-4. Qiu, X., Ma, X., Liang, D., Luo, G., Wang, W., Wang, K., & Li, S. (2026).  
+4. Qiu X., Ma X., Liang D., Luo G., Wang W., Wang K., & Li S. (2026).  
    *Fully Kolmogorov–Arnold Deep Model in Medical Image Segmentation.*  
    arXiv preprint arXiv:2602.03156.  
    https://arxiv.org/html/2602.03156v1
 
-5. O’Shea, K., & Nash, R. (2015).  
+5. O’Shea K., & Nash R. (2015).  
    *An Introduction to Convolutional Neural Networks.*  
    arXiv preprint arXiv:1511.08458.  
    https://arxiv.org/pdf/1511.08458
+
+6. Hoang D., Gupta A., Harris P. (2026).
+   *KANELÉ: Kolmogorov–Arnold Networks for Efficient LUT-based Evaluation*
+   arXiv preprint arxiv:2512.12850.
+   https://arxiv.org/html/2512.12850
+
+7. Hoang D., Gupta A.  
+   *KANELE* [GitHub repository].  
+   https://github.com/Duchstf/KANELE

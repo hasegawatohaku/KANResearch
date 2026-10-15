@@ -43,6 +43,15 @@ All four are U-Net-shaped: encoder → bottleneck → decoder → 1×1 output.
 - **`ALLUKAN_FULL_GRAD`** — same, but bottleneck and output use full
   spline gradients.
 - **`ALLUKAN_CNN_CONV`** — CNN encoder + KA bottleneck + CNN decoder.
+- **`ALLUKAN_KANELE`** — `ALLUKAN_GFS` prepared for LUT-based inference
+  (KANELÉ) [6]. Same architecture, parameterization and initialization as
+  `ALLUKAN_GFS`. Every KA / KAonv layer additionally:
+  - quantizes its inputs to `bits` bits — `input_range` for the first
+    encoder layer, `qrange` for all other layers;
+  - holds a connection mask `[O, P]` used for pruning;
+  - computes its output as an integer sum of table entries with
+    `table_frac_bits` fractional bits and quantizes the sum to `qrange`
+    (`output_range` for the 1×1 output layer).
 - **`CNN`** — pure CNN U-Net baseline.
 
 - **`build_models(...)`** — returns the four models above as

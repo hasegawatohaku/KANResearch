@@ -1,7 +1,8 @@
 import torch.nn as nn
 import torch.nn.functional as F
 
-from common.layers import SaKANConv2dLayer
+from common.layers.sakan import SaKANConv2dLayer
+from common.layers.kanele import KANELEConv2dLayer
 
 class KAConvFeatureExtractor(nn.Module):
     """
@@ -43,17 +44,18 @@ class KAConvFeatureExtractor(nn.Module):
 
         return x, skips
 
-class CNNFeatureExtractor(nn.Module):
+class CNNFeatureExtractor(KAConvFeatureExtractor):
     """
     Ordinary perceptron-based convolutional blocks.
 
     Conv2d contains scalar trainable weights. SiLU provides the
     nonlinearity between convolutional layers. MaxPool2d reduces
     spatial resolution
-    """
 
+    forward() function inherits from the KAConvFeatureExtractor.
+    """
     def __init__(self, in_channels, channels, pools):
-        super().__init__()
+        nn.Module.__init__(self)
 
         self.pools = pools
 
@@ -73,14 +75,46 @@ class CNNFeatureExtractor(nn.Module):
             )
             in_channels = out_channels
 
-    def forward(self, x):
-        skips = []
+class KANELEConvFeatureExtractor(KAConvFeatureExtractor):
+    """
+    
 
-        for i, block in enumerate(self.blocks):
-            x = block(x)
-            skips.append(x)
+    forward() function inherits from the KAConvFeatureExtractor.
+    """
 
-            if i in self.pools:
-                x = F.max_pool2d(x, 2)
+    def __init__(
+        self,
+        in_channels,
+        channels,
+        pools,
+        grid_size,
+        spline_order,
+        bits,
+        input_range,
+        qrange,
+        table_frac_bits
+    ):
+        nn.Module.__init__(self)
 
-        return x, skips
+        self.pools = pools
+
+        self.blocks = nn.ModuleList()
+
+        for i, out_channels in enumerate(channels):
+            self.blocks.append(
+                KANELEConv2dLayer(
+                    in_channels,
+                    out_channels,
+                    kernel_size=3,
+                    stride=1,
+                    padding=1,
+                    grid_size=grid_size,
+                    spline_order=spline_order,
+                    bits=bits,
+                    # The first layer reads the input image.
+                    in_range=(input_range if i == 0 else qrange),
+                    out_range=qrange,
+                    table_frac_bits=table_frac_bits
+                )
+            )
+            in_channels = out_channels
