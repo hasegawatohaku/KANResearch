@@ -4,7 +4,7 @@ GRID_SIZE = 5
 SPLINE_ORDER = 3
 
 BATCH_SIZE = 2
-EPOCHS = 1
+EPOCHS = 6
 LR = 1e-3
 
 IN_CHANNELS = 1
@@ -16,4 +16,4 @@ DATASET_ROOT = "./data/Dataset_BUSI_with_GT"
 ENCODER_CHANNELS = [4, 8, 16]
 POOLS = [0, 1, 2]
 
-KA_WIDTHS = []
+KA_WIDTHS = [] # learning is better without KA-layers.

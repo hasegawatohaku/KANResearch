@@ -10,10 +10,17 @@ class KADecoder(nn.Module):
     U-Net decoder built from SaKANConv2dLayer blocks.
     Upsamples the current feature map, concatenates the matching skip, then applies a KA convolution.
     """
-    def __init__(self, channels, pools, grid_size, spline_order, grad_free=True):
+    def __init__(self, 
+                 channels, 
+                 pools, 
+                 grid_size, 
+                 spline_order, 
+                 grad_free=True, 
+                 in_channels=None
+    ):
         super().__init__()
 
-        in_channels = channels[-1]
+        in_channels = channels[-1] if in_channels is None else in_channels
         
         self.pools = pools
         self.blocks = nn.ModuleList()
@@ -56,10 +63,14 @@ class CNNDecoder(KADecoder):
     """
     U-Net decoder built from ordinary Conv2d + SiLU blocks.
     """
-    def __init__(self, channels, pools):
+    def __init__(self, 
+                 channels, 
+                 pools, 
+                 in_channels=None
+    ):
         nn.Module.__init__(self)
 
-        in_channels = channels[-1]
+        in_channels = channels[-1] if in_channels is None else in_channels
 
         self.blocks = nn.ModuleList()
         self.pools = pools
@@ -91,11 +102,12 @@ class KANELEDecoder(KADecoder):
         spline_order,
         bits,
         qrange,
-        table_frac_bits
+        table_frac_bits,
+        in_channels=None
     ):
         nn.Module.__init__(self)
 
-        in_channels = channels[-1]
+        in_channels = channels[-1] if in_channels is None else in_channels
 
         self.pools = pools
         self.blocks = nn.ModuleList()

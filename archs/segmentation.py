@@ -21,6 +21,8 @@ class ALLUKAN_GFS(nn.Module):
     ):
         super().__init__()
 
+        bottleneck_widths = [channels[-1]] + ka_widths
+
         self.encoder = KAConvFeatureExtractor(
             in_channels,
             channels,
@@ -31,7 +33,7 @@ class ALLUKAN_GFS(nn.Module):
         )
 
         self.bottleneck = SaKANPixelBlock(
-            [channels[-1]] + ka_widths,
+            bottleneck_widths,
             grid_size=grid_size,
             spline_order=spline_order,
             grad_free=True
@@ -42,7 +44,8 @@ class ALLUKAN_GFS(nn.Module):
             pools,
             grid_size=grid_size,
             spline_order=spline_order,
-            grad_free=True
+            grad_free=True,
+            in_channels=bottleneck_widths[-1]
         )
 
         self.output = SaKANConv2dLayer(
@@ -75,6 +78,8 @@ class ALLUKAN_FULL_GRAD(nn.Module):
     ):
         super().__init__()
 
+        bottleneck_widths = [channels[-1]] + ka_widths
+
         self.encoder = KAConvFeatureExtractor(
             in_channels,
             channels,
@@ -85,7 +90,7 @@ class ALLUKAN_FULL_GRAD(nn.Module):
         )
 
         self.bottleneck = SaKANPixelBlock(
-            [channels[-1]] + ka_widths,
+            bottleneck_widths,
             grid_size=grid_size,
             spline_order=spline_order,
             grad_free=False
@@ -96,7 +101,8 @@ class ALLUKAN_FULL_GRAD(nn.Module):
             pools,
             grid_size=grid_size,
             spline_order=spline_order,
-            grad_free=False
+            grad_free=False,
+            in_channels=bottleneck_widths[-1]
         )
 
         self.output = SaKANConv2dLayer(
@@ -134,10 +140,12 @@ class ALLUKAN_CNN_CONV(nn.Module):
     ):
         super().__init__()
 
+        bottleneck_widths = [channels[-1]] + ka_widths
+
         self.encoder = CNNFeatureExtractor(in_channels, channels, pools)
 
         self.bottleneck = SaKANPixelBlock(
-            [channels[-1]] + ka_widths,
+            bottleneck_widths,
             grid_size=grid_size,
             spline_order=spline_order,
             grad_free=True
@@ -148,7 +156,8 @@ class ALLUKAN_CNN_CONV(nn.Module):
         self.output = nn.Conv2d(
             channels[0],
             out_channels,
-            kernel_size=1
+            kernel_size=1,
+            in_channels=bottleneck_widths[-1]
         )
 
     def forward(self, x):
@@ -184,6 +193,8 @@ class ALLUKAN_KANELE(nn.Module):
     ):
         super().__init__()
 
+        bottleneck_widths = [channels[-1]] + ka_widths
+
         self.encoder = KANELEConvFeatureExtractor(
             in_channels,
             channels,
@@ -197,7 +208,7 @@ class ALLUKAN_KANELE(nn.Module):
         )
 
         self.bottleneck = KANELEPixelBlock(
-            [channels[-1]] + ka_widths,
+            bottleneck_widths,
             grid_size=grid_size,
             spline_order=spline_order,
             bits=bits,
@@ -212,7 +223,8 @@ class ALLUKAN_KANELE(nn.Module):
             spline_order=spline_order,
             bits=bits,
             qrange=qrange,
-            table_frac_bits=table_frac_bits
+            table_frac_bits=table_frac_bits,
+            in_channels=bottleneck_widths[-1]
         )
 
         self.output = KANELEConv2dLayer(

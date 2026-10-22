@@ -139,15 +139,3 @@ class KANELEPixelBlock(SaKANPixelBlock):
                     pre_silu=(i > 0)
                 )
             )
-
-    def forward(self, x):
-        b, c, h, w = x.shape
-
-        x = x.permute(0, 2, 3, 1).reshape(-1, c)
-
-        for block in self.blocks:
-            x = block(x)
-
-        x = x.reshape(b, h, w, -1)
-
-        return x.permute(0, 3, 1, 2)
